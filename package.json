@@ -64,7 +64,8 @@
     "dev": "rollup --config rollup.config.js -w",
     "build": "NODE_ENV=production rollup --config rollup.config.js",
     "lint": "eslint --fix --ext .js,.ts,.tsx ./src --ignore-path .gitignore",
-    "check-types": "tsc --project tsconfig.json --pretty --noEmit"
+    "check-types": "tsc --project tsconfig.json --pretty --noEmit",
+    "postinstall": "yarn build"
   },
   "browserslist": [
     ">0.2%",
