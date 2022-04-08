@@ -1,37 +1,93 @@
-import './style.css';
-
-import solido, {
-  getDepositInstruction,
-  getExchangeRate,
-  getStSolSupply,
-} from '@chorusone/solido.js';
-import { LAMPORTS_PER_SOL, Transaction, TransactionInstruction } from '@solana/web3.js';
+import solido, { getExchangeRate, getStSolSupply } from '@chorusone/solido.js';
+import {
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  StakeProgram,
+  Transaction,
+  TransactionInstruction,
+} from '@solana/web3.js';
 import BN from 'bn.js';
 // eslint-disable-next-line import/no-unresolved
 import { FunctionComponent, useEffect, useState } from 'react';
-import { Plugin, useConnection, usePublicKey, useSignAllTransactions, ViewProps } from 'saifu';
+import {
+  Plugin,
+  useConnection,
+  usePublicKey,
+  useQuery,
+  useSignAllTransactions,
+  useTokenAccounts,
+  ViewProps,
+} from 'saifu';
 
 import Button from './components/Button';
 import { LidoIcon, LidoIconText } from './components/Icon';
+import Spinner from './components/Spinner';
+import StakedRow, { StakeData } from './components/StakedRow';
+import TokenBalance from './components/TokenBalance';
 import { findAssociatedTokenAddress } from './lib/ata';
-import { solToLamports } from './lib/number';
+import { lamportsToSol, solToLamports } from './lib/number';
+import ParsedStakeAccount from './lib/parsedstakeaccount';
+import './style.css';
 
 const Lido: FunctionComponent<ViewProps> = () => {
   const connection = useConnection();
   const pk = usePublicKey();
   const signAllTxs = useSignAllTransactions();
 
-  console.log(signAllTxs);
-
   const lamportsPerSol = new BN(LAMPORTS_PER_SOL);
 
-  const [amount, setAmount] = useState(0.1);
+  const [enteredAmount, setEnteredAmount] = useState();
 
   const [tvl, setTvl] = useState(new BN(0));
   const [exchangeRate, setExchangeRate] = useState(0);
   const [stSolSupply, setStSolSupply] = useState(new BN(0));
 
-  const willReceive = amount / exchangeRate;
+  const tokenAccounts = useTokenAccounts();
+  const solAccount = tokenAccounts.data?.find((t) => t.isSol);
+  const solBalance = new BN(solAccount?.amount || '0');
+
+  const stakeData = useQuery(['validator-stakes', pk], async () => {
+    if (pk) {
+      const res = await connection.getParsedProgramAccounts(StakeProgram.programId, {
+        filters: [
+          { dataSize: 200 },
+          {
+            memcmp: {
+              offset: 4 + 8 + 32, // offset for withdrawer
+              bytes: pk.toString(),
+            },
+          },
+        ],
+      });
+
+      if (res.length === 0) {
+        return;
+      }
+
+      const promises = res.map((acc) => {
+        const parsedData = (acc.account.data as any).parsed as ParsedStakeAccount;
+        console.log(parsedData);
+
+        const voter = parsedData.info.stake.delegation.voter;
+        return new Promise<StakeData>((resolve, reject) => {
+          connection.getStakeActivation(acc.pubkey).then((stakeActivationData) => {
+            resolve({
+              voter,
+              stakeActivationData,
+              stakeAccount: acc.pubkey,
+            });
+          });
+        });
+      });
+
+      return await Promise.all(promises);
+    }
+  });
+
+  let willReceive = 0;
+  if (enteredAmount && enteredAmount !== 0 && exchangeRate !== 0) {
+    willReceive = enteredAmount / exchangeRate;
+  }
 
   useEffect(() => {
     (async () => {
@@ -54,7 +110,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
 
     const snapshot = await solido.getSnapshot(connection, solido.MAINNET_PROGRAM_ADDRESSES);
 
-    const stakeAmount = new solido.Lamports(solToLamports(amount));
+    const stakeAmount = new solido.Lamports(solToLamports(enteredAmount));
 
     const ata = await findAssociatedTokenAddress(pk, snapshot.programAddresses.stSolMintAddress);
 
@@ -87,6 +143,23 @@ const Lido: FunctionComponent<ViewProps> = () => {
     tx.feePayer = pk;
 
     signAllTxs([tx]);
+  };
+
+  const handleWithdraw = async (stakeAccount: PublicKey, stakeBalance: number) => {
+    if (!pk) {
+      return;
+    }
+
+    const withdrawTx = StakeProgram.withdraw({
+      stakePubkey: stakeAccount,
+      authorizedPubkey: pk,
+      toPubkey: pk,
+      lamports: stakeBalance, // Withdraw the full balance at the time of the transaction
+    });
+    withdrawTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    withdrawTx.feePayer = pk;
+
+    signAllTxs([withdrawTx]);
   };
 
   return (
@@ -130,23 +203,73 @@ const Lido: FunctionComponent<ViewProps> = () => {
               placeholder="Amount"
               type="number"
               step="0.01"
-              onChange={(e) => setAmount(parseFloat(e.target.value))}
-              value={amount}
+              onChange={(e) => {
+                let amount = parseFloat(e.target.value);
+                const solBalanceSol = lamportsToSol(solBalance.toNumber());
+                if (amount > solBalanceSol) {
+                  amount = solBalanceSol;
+                }
+
+                setEnteredAmount(amount);
+              }}
+              value={enteredAmount}
             />
           </div>
           <div className="">
             <Button onClick={handleStake} className="w-full my-8" text="Stake SOL"></Button>
           </div>
           <div className="grid grid-cols-2 gap-4">
+            <p>Available SOL:</p>
+            <p className="text-right">{lamportsToSol(solBalance.toNumber()).toFixed(4)} SOL</p>
+
             <p>You will receive:</p>
             <p className="text-right">~ {willReceive.toFixed(4)} stSOL</p>
+
             <p>Exchange Rate:</p>
             <p className="text-right">1 stSOL = ~{exchangeRate.toFixed(4)} SOL</p>
+
             <p>Transaction Cost</p>
             <p className="text-right">~ 0.000005 SOL</p>
+
             <p>Lido staking rewards fee</p>
             <p className="text-right">10%</p>
           </div>
+        </div>
+      </div>
+
+      <div className="mt-8 space-y-2">
+        <h2 className="text-xl font-bold my-2">Staking overview</h2>
+        <p className="p-4 bg-[#00a3ff10] text-[#00a3ff]">
+          SOL becomes withdrawable after it has finished deactivating which will take 2~3 days upon
+          unstaking.{' '}
+          <a
+            className="text-[#00a3ff] underline"
+            href="https://docs.solana.lido.fi/staking/phantom/#step-6-unstaking-and-utlizing-stsol"
+            target="_blank"
+            rel="noreferrer"
+          >
+            More info here
+          </a>
+        </p>
+
+        <div className="space-y-2">
+          <TokenBalance />
+
+          {((stakeData.isLoading || !stakeData.isSuccess) && (
+            <div>
+              <Spinner className="inline-block" />
+              <p className="inline-block">Searching staking accounts</p>
+            </div>
+          )) ||
+            stakeData.data?.map((row) => (
+              <StakedRow
+                key={row.voter}
+                data={row}
+                onWithdraw={() =>
+                  handleWithdraw(row.stakeAccount, row.stakeActivationData.inactive)
+                }
+              />
+            ))}
         </div>
       </div>
 
@@ -167,17 +290,17 @@ const Lido: FunctionComponent<ViewProps> = () => {
   );
 };
 
-class SolendPlugin extends Plugin {
+class LidoPlugin extends Plugin {
   id = 'lido';
 
   async onload(): Promise<void> {
     this.addView({
-      title: 'Lido Staking',
+      title: 'Lido',
       id: 'lido',
       component: Lido,
-      icon: <LidoIcon variant="white" className="h-5 w-5" />,
+      icon: <LidoIcon variant="white" className="h-5 w-5 ml-[3px]" />,
     });
   }
 }
 
-export default SolendPlugin;
+export default LidoPlugin;

@@ -10,8 +10,6 @@
     "axios": "^0.21.1"
   },
   "devDependencies": {
-    "@solana/spl-token": "^0.2.0",
-    "saifu": "^0.1.5",
     "@chorusone/solido.js": "file:vendor/solido",
     "@heroicons/react": "^1.0.5",
     "@rollup/plugin-babel": "^5.3.1",
@@ -21,6 +19,7 @@
     "@rollup/plugin-replace": "^4.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
     "@saifuwallet/saifu": "^0.1.4",
+    "@solana/spl-token": "^0.2.0",
     "@solendprotocol/solend-sdk": "^0.5.5",
     "@types/bn.js": "^5.1.0",
     "@types/node": "^14.14.2",
@@ -53,6 +52,7 @@
     "rollup-plugin-node-polyfills": "^0.2.1",
     "rollup-plugin-polyfill-node": "^0.8.0",
     "rollup-plugin-postcss": "^4.0.2",
+    "saifu": "github:saifuwallet/saifu-api#master",
     "tailwindcss": "^3.0.23",
     "tslib": "^2.0.3",
     "typescript": "^4.5.5"
