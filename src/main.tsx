@@ -1,25 +1,37 @@
 import './style.css';
 
-import solido, { getExchangeRate, getStSolSupply } from '@chorusone/solido.js';
-import { Plugin, ViewProps } from '@saifuwallet/saifu';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import solido, {
+  getDepositInstruction,
+  getExchangeRate,
+  getStSolSupply,
+} from '@chorusone/solido.js';
+import { LAMPORTS_PER_SOL, Transaction, TransactionInstruction } from '@solana/web3.js';
 import BN from 'bn.js';
+// eslint-disable-next-line import/no-unresolved
 import { FunctionComponent, useEffect, useState } from 'react';
+import { Plugin, useConnection, usePublicKey, useSignAllTransactions, ViewProps } from 'saifu';
 
 import Button from './components/Button';
 import { LidoIcon, LidoIconText } from './components/Icon';
+import { findAssociatedTokenAddress } from './lib/ata';
+import { solToLamports } from './lib/number';
 
-const Lido: FunctionComponent<ViewProps> = ({ app }) => {
-  const connection = app.hooks.useConnection();
+const Lido: FunctionComponent<ViewProps> = () => {
+  const connection = useConnection();
+  const pk = usePublicKey();
+  const signAllTxs = useSignAllTransactions();
+
+  console.log(signAllTxs);
+
   const lamportsPerSol = new BN(LAMPORTS_PER_SOL);
 
-  const [amount, setAmount] = useState(3);
+  const [amount, setAmount] = useState(0.1);
 
   const [tvl, setTvl] = useState(new BN(0));
   const [exchangeRate, setExchangeRate] = useState(0);
   const [stSolSupply, setStSolSupply] = useState(new BN(0));
 
-  const willReceive = amount * exchangeRate;
+  const willReceive = amount / exchangeRate;
 
   useEffect(() => {
     (async () => {
@@ -34,6 +46,48 @@ const Lido: FunctionComponent<ViewProps> = ({ app }) => {
       setStSolSupply(stSolSupply.stLamports);
     })();
   }, []);
+
+  const handleStake = async () => {
+    if (!pk) {
+      return;
+    }
+
+    const snapshot = await solido.getSnapshot(connection, solido.MAINNET_PROGRAM_ADDRESSES);
+
+    const stakeAmount = new solido.Lamports(solToLamports(amount));
+
+    const ata = await findAssociatedTokenAddress(pk, snapshot.programAddresses.stSolMintAddress);
+
+    // try to get ata
+    const insts: TransactionInstruction[] = [];
+
+    try {
+      connection.getAccountInfo(ata);
+    } catch (e) {
+      const ataInitInst = await solido.getATAInitializeInstruction(
+        snapshot.programAddresses.stSolMintAddress,
+        pk
+      );
+
+      insts.push(ataInitInst);
+    }
+
+    const depositInstruction = await solido.getDepositInstruction(
+      pk,
+      ata,
+      solido.MAINNET_PROGRAM_ADDRESSES,
+      stakeAmount
+    );
+
+    insts.push(depositInstruction);
+
+    const tx = new Transaction();
+    tx.add(...insts);
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = pk;
+
+    signAllTxs([tx]);
+  };
 
   return (
     <div>
@@ -73,14 +127,15 @@ const Lido: FunctionComponent<ViewProps> = ({ app }) => {
             </svg>
             <input
               className="w-full border-r border-[#d1d8df] focus:border-[#00a3ff] placeholder:text-[#d1d8df] rounded-xl px-12 py-4 text-sm"
-              type="text"
               placeholder="Amount"
+              type="number"
+              step="0.01"
               onChange={(e) => setAmount(parseFloat(e.target.value))}
               value={amount}
             />
           </div>
           <div className="">
-            <Button className="w-full my-8" text="Stake SOL"></Button>
+            <Button onClick={handleStake} className="w-full my-8" text="Stake SOL"></Button>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <p>You will receive:</p>
@@ -113,9 +168,7 @@ const Lido: FunctionComponent<ViewProps> = ({ app }) => {
 };
 
 class SolendPlugin extends Plugin {
-  name = 'Solend View';
-  description = 'Plugin to view your Solend Obligations';
-  id = 'solend-pluginsss';
+  id = 'lido';
 
   async onload(): Promise<void> {
     this.addView({

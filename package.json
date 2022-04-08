@@ -10,6 +10,8 @@
     "axios": "^0.21.1"
   },
   "devDependencies": {
+    "@solana/spl-token": "^0.2.0",
+    "saifu": "^0.1.5",
     "@chorusone/solido.js": "file:vendor/solido",
     "@heroicons/react": "^1.0.5",
     "@rollup/plugin-babel": "^5.3.1",
