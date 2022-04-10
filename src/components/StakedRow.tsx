@@ -9,6 +9,7 @@ import TokenLogo from './TokenLogo';
 
 export interface StakeData {
   voter: string;
+  balance: number;
   stakeActivationData: StakeActivationData;
   stakeAccount: PublicKey;
 }
@@ -34,7 +35,7 @@ const StakedRow = ({
       </div>
       <div className="flex-grow text-left">
         <p className="font-bold">{tokenInfo?.symbol} </p>
-        <p>{lamportsToSol(data.stakeActivationData.inactive)} SOL</p>
+        <p>{lamportsToSol(data.balance)} SOL</p>
       </div>
       <div className="flex-none text-right">
         <p className="font-bold">{data.stakeActivationData.state}</p>
