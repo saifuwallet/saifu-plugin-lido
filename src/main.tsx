@@ -232,7 +232,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
             <Button
               onClick={() => handleStake.mutateAsync()}
               isLoading={handleStake.isLoading}
-              disabled={handleStake.isLoading}
+              disabled={handleStake.isLoading || !pk || !enteredAmount}
               className="w-full my-8"
               text="Stake SOL"
             ></Button>
