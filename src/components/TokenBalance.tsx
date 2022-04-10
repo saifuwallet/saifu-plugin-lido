@@ -6,29 +6,31 @@ import { lamportsToSol, lamportsToUSD } from '@/lib/number';
 import Card from './Card';
 import TokenLogo from './TokenLogo';
 
-const TokenBalance = () => {
-  const tokenInfos = useTokenInfos();
-  const tokenInfo = tokenInfos.find((t) => t.symbol === 'stSOL');
+const TokenBalance = ({ exchangeRate }: { exchangeRate: number }) => {
   const tokenAccounts = useTokenAccounts();
-  const stSolAccount = tokenAccounts.data?.find((t) => t.mint === tokenInfo?.address);
+  const tokenInfos = useTokenInfos();
+
+  const stSolInfo = tokenInfos.find((t) => t.symbol === 'stSOL');
+  const stSolAccount = tokenAccounts.data?.find((t) => t.mint === stSolInfo?.address);
   const stSolAmount = new BN(stSolAccount?.amount || '0');
 
-  const price = usePrice(tokenInfo);
+  const solInfo = tokenInfos.find((t) => t.symbol === 'SOL');
+  const solPrice = usePrice(solInfo);
+
+  const price = solPrice.data || 1 * exchangeRate;
 
   return (
     <Card className="flex space-x-2">
       <div className="flex-none">
-        <TokenLogo url={tokenInfo?.logoURI} alt="stSOL Logo" />
+        <TokenLogo url={stSolInfo?.logoURI} alt="stSOL Logo" />
       </div>
       <div className="flex-grow text-left">
-        <p className="font-bold">{tokenInfo?.symbol} </p>
+        <p className="font-bold">{stSolInfo?.symbol} </p>
         <p>-</p>
       </div>
       <div className="flex-none text-right">
         <p className="font-bold">{lamportsToSol(stSolAmount.toNumber())}</p>
-        <p className="">
-          {lamportsToUSD(stSolAmount.toNumber(), price.data || 0, tokenInfo?.decimals)}
-        </p>
+        <p className="">{lamportsToUSD(stSolAmount.toNumber(), price || 0, stSolInfo?.decimals)}</p>
       </div>
     </Card>
   );

@@ -265,7 +265,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
         </p>
 
         <div className="space-y-2">
-          <TokenBalance />
+          <TokenBalance exchangeRate={exchangeRate.data || 0} />
 
           {((stakeData.isLoading || !stakeData.isSuccess) && (
             <div>
