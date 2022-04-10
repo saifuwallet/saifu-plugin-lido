@@ -239,7 +239,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
             <p>Lido staking rewards fee</p>
             <p className="text-right">10%</p>
 
-            <p>Staking APR</p>
+            <p>Lido Staking APR</p>
             <p className="text-right">
               {lidoStats.data?.apr.toFixed(2).concat('%') || (
                 <Spinner className="absolute right-0" />
@@ -320,7 +320,7 @@ class LidoPlugin extends Plugin {
 
   async onload(): Promise<void> {
     this.addView({
-      title: 'Lido',
+      title: 'Stake',
       id: 'lido',
       component: Lido,
       icon: <LidoIcon variant="white" className="h-5 w-5 ml-[3px]" />,
