@@ -1,14 +1,8 @@
-import solido, { getExchangeRate, getStSolSupply } from '@chorusone/solido.js';
-import {
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  StakeProgram,
-  Transaction,
-  TransactionInstruction,
-} from '@solana/web3.js';
+import solido, { getExchangeRate } from '@chorusone/solido.js';
+import { PublicKey, StakeProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
 import BN from 'bn.js';
 // eslint-disable-next-line import/no-unresolved
-import { FunctionComponent, useEffect, useState } from 'react';
+import { FunctionComponent, useState } from 'react';
 import {
   Plugin,
   useConnection,

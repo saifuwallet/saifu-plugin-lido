@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useQuery } from 'saifu';
 
 const statsUrl = 'https://solana.lido.fi/api/stats';
