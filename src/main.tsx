@@ -25,6 +25,7 @@ import { LidoIcon, LidoIconText } from './components/Icon';
 import Spinner from './components/Spinner';
 import StakedRow, { StakeData } from './components/StakedRow';
 import TokenBalance from './components/TokenBalance';
+import useLidoStats from './hooks/useLidoStats';
 import { findAssociatedTokenAddress } from './lib/ata';
 import { lamportsToSol, solToLamports } from './lib/number';
 import ParsedStakeAccount from './lib/parsedstakeaccount';
@@ -42,6 +43,8 @@ const Lido: FunctionComponent<ViewProps> = () => {
   const [tvl, setTvl] = useState(new BN(0));
   const [exchangeRate, setExchangeRate] = useState(0);
   const [stSolSupply, setStSolSupply] = useState(new BN(0));
+
+  const lidoStats = useLidoStats();
 
   const tokenAccounts = useTokenAccounts();
   const solAccount = tokenAccounts.data?.find((t) => t.isSol);
@@ -234,7 +237,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
               text="Stake SOL"
             ></Button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 relative">
             <p>Available SOL:</p>
             <p className="text-right">{lamportsToSol(solBalance.toNumber()).toFixed(4)} SOL</p>
 
@@ -249,6 +252,13 @@ const Lido: FunctionComponent<ViewProps> = () => {
 
             <p>Lido staking rewards fee</p>
             <p className="text-right">10%</p>
+
+            <p>Staking APR</p>
+            <p className="text-right">
+              {lidoStats.data?.apr.toFixed(2).concat('%') || (
+                <Spinner className="absolute right-0" />
+              )}
+            </p>
           </div>
         </div>
       </div>
@@ -297,11 +307,20 @@ const Lido: FunctionComponent<ViewProps> = () => {
         <h2 className="text-xl font-bold my-2">Lido statistics</h2>
         <div className="w-full bg-white rounded-md ">
           <div className="space-y-4 p-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 relative">
               <p>Total staked with Lido:</p>
-              <p className="text-right">{tvl.div(lamportsPerSol).toString()} SOL</p>
-              <p>supply:</p>
-              <p className="text-right">{stSolSupply.div(lamportsPerSol).toString()}</p>
+              <p className="text-right">
+                {lidoStats.data?.totalStaked.sol.toFixed(4).concat(' SOL') || (
+                  <Spinner className="absolute right-0" />
+                )}
+              </p>
+              <p>Stakers:</p>
+
+              <p className="text-right">
+                {lidoStats.data?.stakers.toFixed(0).concat(' Stakers') || (
+                  <Spinner className="absolute right-0" />
+                )}
+              </p>
             </div>
           </div>
         </div>
