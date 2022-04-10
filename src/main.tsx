@@ -12,6 +12,7 @@ import { FunctionComponent, useEffect, useState } from 'react';
 import {
   Plugin,
   useConnection,
+  useMutation,
   usePublicKey,
   useQuery,
   useSignAllTransactions,
@@ -36,7 +37,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
 
   const lamportsPerSol = new BN(LAMPORTS_PER_SOL);
 
-  const [enteredAmount, setEnteredAmount] = useState();
+  const [enteredAmount, setEnteredAmount] = useState<number>();
 
   const [tvl, setTvl] = useState(new BN(0));
   const [exchangeRate, setExchangeRate] = useState(0);
@@ -66,17 +67,19 @@ const Lido: FunctionComponent<ViewProps> = () => {
 
       const promises = res.map((acc) => {
         const parsedData = (acc.account.data as any).parsed as ParsedStakeAccount;
-        console.log(parsedData);
 
         const voter = parsedData.info.stake.delegation.voter;
         return new Promise<StakeData>((resolve, reject) => {
-          connection.getStakeActivation(acc.pubkey).then((stakeActivationData) => {
-            resolve({
-              voter,
-              stakeActivationData,
-              stakeAccount: acc.pubkey,
-            });
-          });
+          connection
+            .getStakeActivation(acc.pubkey)
+            .then((stakeActivationData) => {
+              resolve({
+                voter,
+                stakeActivationData,
+                stakeAccount: acc.pubkey,
+              });
+            })
+            .catch(reject);
         });
       });
 
@@ -103,13 +106,16 @@ const Lido: FunctionComponent<ViewProps> = () => {
     })();
   }, []);
 
-  const handleStake = async () => {
+  const handleStake = useMutation(async () => {
     if (!pk) {
       return;
     }
 
-    const snapshot = await solido.getSnapshot(connection, solido.MAINNET_PROGRAM_ADDRESSES);
+    if (!enteredAmount) {
+      return;
+    }
 
+    const snapshot = await solido.getSnapshot(connection, solido.MAINNET_PROGRAM_ADDRESSES);
     const stakeAmount = new solido.Lamports(solToLamports(enteredAmount));
 
     const ata = await findAssociatedTokenAddress(pk, snapshot.programAddresses.stSolMintAddress);
@@ -117,6 +123,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
     // try to get ata
     const insts: TransactionInstruction[] = [];
 
+    // add instruction to create ATA if doesn't exist yet
     try {
       connection.getAccountInfo(ata);
     } catch (e) {
@@ -128,6 +135,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
       insts.push(ataInitInst);
     }
 
+    // actual deposit instruction
     const depositInstruction = await solido.getDepositInstruction(
       pk,
       ata,
@@ -143,24 +151,26 @@ const Lido: FunctionComponent<ViewProps> = () => {
     tx.feePayer = pk;
 
     signAllTxs([tx]);
-  };
+  });
 
-  const handleWithdraw = async (stakeAccount: PublicKey, stakeBalance: number) => {
-    if (!pk) {
-      return;
+  const handleWithdraw = useMutation(
+    async ({ stakeAccount, stakeBalance }: { stakeAccount: PublicKey; stakeBalance: number }) => {
+      if (!pk) {
+        return;
+      }
+
+      const withdrawTx = StakeProgram.withdraw({
+        stakePubkey: stakeAccount,
+        authorizedPubkey: pk,
+        toPubkey: pk,
+        lamports: stakeBalance, // Withdraw the full balance at the time of the transaction
+      });
+      withdrawTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+      withdrawTx.feePayer = pk;
+
+      signAllTxs([withdrawTx]);
     }
-
-    const withdrawTx = StakeProgram.withdraw({
-      stakePubkey: stakeAccount,
-      authorizedPubkey: pk,
-      toPubkey: pk,
-      lamports: stakeBalance, // Withdraw the full balance at the time of the transaction
-    });
-    withdrawTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    withdrawTx.feePayer = pk;
-
-    signAllTxs([withdrawTx]);
-  };
+  );
 
   return (
     <div>
@@ -216,7 +226,13 @@ const Lido: FunctionComponent<ViewProps> = () => {
             />
           </div>
           <div className="">
-            <Button onClick={handleStake} className="w-full my-8" text="Stake SOL"></Button>
+            <Button
+              onClick={() => handleStake.mutateAsync()}
+              isLoading={handleStake.isLoading}
+              disabled={handleStake.isLoading}
+              className="w-full my-8"
+              text="Stake SOL"
+            ></Button>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <p>Available SOL:</p>
@@ -265,8 +281,12 @@ const Lido: FunctionComponent<ViewProps> = () => {
               <StakedRow
                 key={row.voter}
                 data={row}
+                isLoading={handleWithdraw.isLoading}
                 onWithdraw={() =>
-                  handleWithdraw(row.stakeAccount, row.stakeActivationData.inactive)
+                  handleWithdraw.mutateAsync({
+                    stakeAccount: row.stakeAccount,
+                    stakeBalance: row.stakeActivationData.inactive,
+                  })
                 }
               />
             ))}

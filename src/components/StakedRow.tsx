@@ -13,7 +13,15 @@ export interface StakeData {
   stakeAccount: PublicKey;
 }
 
-const StakedRow = ({ data, onWithdraw }: { data: StakeData; onWithdraw: () => void }) => {
+const StakedRow = ({
+  data,
+  onWithdraw,
+  isLoading,
+}: {
+  data: StakeData;
+  onWithdraw: () => void;
+  isLoading: boolean;
+}) => {
   const tokenInfos = useTokenInfos();
   const tokenInfo = tokenInfos.find((t) => t.symbol === 'SOL');
 
@@ -31,7 +39,12 @@ const StakedRow = ({ data, onWithdraw }: { data: StakeData; onWithdraw: () => vo
       <div className="flex-none text-right">
         <p className="font-bold">{data.stakeActivationData.state}</p>
         <p className="">
-          <Button onClick={onWithdraw} disabled={!isWithdrawable} text="Withdraw" />
+          <Button
+            isLoading={isLoading}
+            onClick={onWithdraw}
+            disabled={!isWithdrawable || isLoading}
+            text="Withdraw"
+          />
         </p>
       </div>
     </Card>
