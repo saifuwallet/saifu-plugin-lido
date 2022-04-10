@@ -36,17 +36,11 @@ const Lido: FunctionComponent<ViewProps> = () => {
   const pk = usePublicKey();
   const signAllTxs = useSignAllTransactions();
 
-  const lamportsPerSol = new BN(LAMPORTS_PER_SOL);
-
   const [enteredAmount, setEnteredAmount] = useState<number>();
 
-  const [tvl, setTvl] = useState(new BN(0));
-  const [exchangeRate, setExchangeRate] = useState(0);
-  const [stSolSupply, setStSolSupply] = useState(new BN(0));
-
   const lidoStats = useLidoStats();
-
   const tokenAccounts = useTokenAccounts();
+
   const solAccount = tokenAccounts.data?.find((t) => t.isSol);
   const solBalance = new BN(solAccount?.amount || '0');
 
@@ -90,24 +84,22 @@ const Lido: FunctionComponent<ViewProps> = () => {
     }
   });
 
-  let willReceive = 0;
-  if (enteredAmount && enteredAmount !== 0 && exchangeRate !== 0) {
-    willReceive = enteredAmount / exchangeRate;
-  }
-
-  useEffect(() => {
-    (async () => {
+  const exchangeRate = useQuery(
+    ['exchange-rate'],
+    async () => {
       const snapshot = await solido.getSnapshot(connection, solido.MAINNET_PROGRAM_ADDRESSES);
 
-      const stSolSupply = getStSolSupply(snapshot, 'totalcoins');
-      const exchangeRate = getExchangeRate(snapshot);
-      const tvl = solido.getTotalValueLocked(snapshot);
+      return getExchangeRate(snapshot);
+    },
+    {
+      placeholderData: 0,
+    }
+  );
 
-      setTvl(tvl.lamports);
-      setExchangeRate(exchangeRate);
-      setStSolSupply(stSolSupply.stLamports);
-    })();
-  }, []);
+  let willReceive = 0;
+  if (enteredAmount && enteredAmount !== 0 && exchangeRate.data) {
+    willReceive = enteredAmount / exchangeRate.data;
+  }
 
   const handleStake = useMutation(async () => {
     if (!pk) {
@@ -231,8 +223,8 @@ const Lido: FunctionComponent<ViewProps> = () => {
           <div className="">
             <Button
               onClick={() => handleStake.mutateAsync()}
-              isLoading={handleStake.isLoading}
-              disabled={handleStake.isLoading || !pk || !enteredAmount}
+              isLoading={handleStake.isLoading || exchangeRate.isLoading}
+              disabled={handleStake.isLoading || !pk || !enteredAmount || exchangeRate.isLoading}
               className="w-full my-8"
               text="Stake SOL"
             ></Button>
@@ -245,7 +237,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
             <p className="text-right">~ {willReceive.toFixed(4)} stSOL</p>
 
             <p>Exchange Rate:</p>
-            <p className="text-right">1 stSOL = ~{exchangeRate.toFixed(4)} SOL</p>
+            <p className="text-right">1 stSOL = ~{exchangeRate.data?.toFixed(4)} SOL</p>
 
             <p>Transaction Cost</p>
             <p className="text-right">~ 0.000005 SOL</p>
