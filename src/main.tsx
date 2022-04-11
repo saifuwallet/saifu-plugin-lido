@@ -42,6 +42,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
     const solAccount = tokenAccounts.data?.find((t) => t.isSol);
     return new BN(solAccount?.amount || '0');
   }, tokenAccounts.data);
+
   const stSolBalance = useMemo(() => {
     const stSolAccount = tokenAccounts.data?.find((t) => stSolInfo?.address === t.mint);
     return new BN(stSolAccount?.amount || '0');
@@ -53,6 +54,14 @@ const Lido: FunctionComponent<ViewProps> = () => {
     }
     return 0;
   }, [enteredSolAmount, exchangeRate.data]);
+
+  const insufficientSol = useMemo(() => {
+    return Number(enteredSolAmount) > lamportsToSol(solBalance.toNumber());
+  }, [enteredSolAmount, solBalance]);
+
+  const insufficientStSol = useMemo(() => {
+    return Number(enteredStSolAmount) > lamportsToSol(stSolBalance.toNumber());
+  }, [enteredStSolAmount, solBalance]);
 
   const handleStake = useHandleStake();
   const handleUnstake = useHandleUnstake();
@@ -109,14 +118,10 @@ const Lido: FunctionComponent<ViewProps> = () => {
                       !pk ||
                       !enteredSolAmount ||
                       exchangeRate.isLoading ||
-                      Number(enteredSolAmount) > lamportsToSol(solBalance.toNumber())
+                      insufficientSol
                     }
                     className="w-full"
-                    text={
-                      (Number(enteredSolAmount) > lamportsToSol(solBalance.toNumber()) &&
-                        'Insufficient Balance') ||
-                      'Stake'
-                    }
+                    text={(insufficientSol && 'Insufficient Balance') || 'Stake'}
                   />
                 </Tab.Panel>
                 <Tab.Panel className="space-y-2" key="Unstake">
@@ -139,10 +144,11 @@ const Lido: FunctionComponent<ViewProps> = () => {
                       handleUnstake.isLoading ||
                       !pk ||
                       !enteredStSolAmount ||
-                      exchangeRate.isLoading
+                      exchangeRate.isLoading ||
+                      insufficientStSol
                     }
                     className="w-full"
-                    text="Unstake"
+                    text={(insufficientStSol && 'Insufficient Balance') || 'Unstake'}
                   />
                 </Tab.Panel>
               </Tab.Panels>
