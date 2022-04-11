@@ -22,6 +22,10 @@ import {
   ViewProps,
 } from 'saifu';
 
+import useHandleWithdraw from '@/hooks/useHandleWithdraw';
+import useStsolExchangeRate from '@/hooks/useStsolExchangeRate';
+import useValidatorStakeData from '@/hooks/useValidatorStakeData';
+
 import Button from './components/Button';
 import { LidoIcon, LidoIconText } from './components/Icon';
 import SolanaLogo from './components/SolanaLogo';
@@ -41,72 +45,13 @@ const Lido: FunctionComponent<ViewProps> = () => {
 
   const [enteredAmount, setEnteredAmount] = useState<number>();
 
+  const stakeData = useValidatorStakeData();
+  const exchangeRate = useStsolExchangeRate();
   const lidoStats = useLidoStats();
   const tokenAccounts = useTokenAccounts();
 
   const solAccount = tokenAccounts.data?.find((t) => t.isSol);
   const solBalance = new BN(solAccount?.amount || '0');
-
-  const stakeData = useQuery(
-    ['validator-stakes', pk],
-    async () => {
-      if (pk) {
-        const res = await connection.getParsedProgramAccounts(StakeProgram.programId, {
-          filters: [
-            { dataSize: 200 },
-            {
-              memcmp: {
-                offset: 4 + 8 + 32, // offset for withdrawer
-                bytes: pk.toString(),
-              },
-            },
-          ],
-        });
-
-        if (res.length === 0) {
-          return;
-        }
-
-        const promises = res.map((acc) => {
-          const parsedData = (acc.account.data as any).parsed as ParsedStakeAccount;
-
-          const voter = parsedData.info.stake.delegation.voter;
-          return new Promise<StakeData>((resolve, reject) => {
-            (async () => {
-              const balance = await connection.getBalance(acc.pubkey);
-
-              connection
-                .getStakeActivation(acc.pubkey)
-                .then((stakeActivationData) => {
-                  resolve({
-                    balance,
-                    voter,
-                    stakeActivationData,
-                    stakeAccount: acc.pubkey,
-                  });
-                })
-                .catch(reject);
-            })();
-          });
-        });
-
-        return await Promise.all(promises);
-      }
-    },
-    { cacheTime: 0 }
-  );
-
-  const exchangeRate = useQuery(
-    ['exchange-rate'],
-    async () => {
-      const snapshot = await solido.getSnapshot(connection, solido.MAINNET_PROGRAM_ADDRESSES);
-
-      return getExchangeRate(snapshot);
-    },
-    {
-      placeholderData: 0,
-    }
-  );
 
   let willReceive = 0;
   if (enteredAmount && enteredAmount !== 0 && exchangeRate.data) {
@@ -160,24 +105,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
     signAllTxs([tx]);
   });
 
-  const handleWithdraw = useMutation(
-    async ({ stakeAccount, stakeBalance }: { stakeAccount: PublicKey; stakeBalance: number }) => {
-      if (!pk) {
-        return;
-      }
-
-      const withdrawTx = StakeProgram.withdraw({
-        stakePubkey: stakeAccount,
-        authorizedPubkey: pk,
-        toPubkey: pk,
-        lamports: stakeBalance, // Withdraw the full balance at the time of the transaction
-      });
-      withdrawTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-      withdrawTx.feePayer = pk;
-
-      signAllTxs([withdrawTx]);
-    }
-  );
+  const handleWithdraw = useHandleWithdraw();
   const tabs = ['Stake', 'Unstake'];
 
   return (
