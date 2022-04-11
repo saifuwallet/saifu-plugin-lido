@@ -3,7 +3,7 @@ import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
 import { FunctionComponent, useState } from 'react';
-import { Plugin, usePublicKey, useTokenAccounts, ViewProps } from 'saifu';
+import { Plugin, usePublicKey, useTokenAccounts, useTokenInfos, ViewProps } from 'saifu';
 
 import useHandleWithdraw from '@/hooks/useHandleWithdraw';
 import useStsolExchangeRate from '@/hooks/useStsolExchangeRate';
@@ -19,26 +19,38 @@ import useHandleStake from './hooks/useHandleStake';
 import useLidoStats from './hooks/useLidoStats';
 import { lamportsToSol } from './lib/number';
 import './style.css';
+import useHandleUnstake from './hooks/useHandleUnstake';
 
 const Lido: FunctionComponent<ViewProps> = () => {
   const pk = usePublicKey();
 
-  const [enteredAmount, setEnteredAmount] = useState<number>();
+  const [enteredSolAmount, setEnteredSolAmount] = useState<number>();
+  const [enteredStSolAmount, setEnteredStSolAmount] = useState<number>();
 
   const stakeData = useValidatorStakeData();
   const exchangeRate = useStsolExchangeRate();
   const lidoStats = useLidoStats();
   const tokenAccounts = useTokenAccounts();
 
+  console.log('stakedata', stakeData.data);
+
   const solAccount = tokenAccounts.data?.find((t) => t.isSol);
   const solBalance = new BN(solAccount?.amount || '0');
 
+  const tokenInfos = useTokenInfos();
+  const tokenInfo = tokenInfos.find((t) => t.symbol === 'stSOL');
+  const stSolAccount = tokenAccounts.data?.find((t) => tokenInfo?.address === t.mint);
+  const stSolBalance = new BN(stSolAccount?.amount || '0');
+
+  console.log('stsolbalance -- ', stSolBalance.toString());
+
   let willReceive = 0;
-  if (enteredAmount && enteredAmount !== 0 && exchangeRate.data) {
-    willReceive = enteredAmount / exchangeRate.data;
+  if (enteredSolAmount && enteredSolAmount !== 0 && exchangeRate.data) {
+    willReceive = enteredSolAmount / exchangeRate.data;
   }
 
   const handleStake = useHandleStake();
+  const handleUnstake = useHandleUnstake();
   const handleWithdraw = useHandleWithdraw();
   const tabs = ['Stake', 'Unstake'];
 
@@ -86,17 +98,20 @@ const Lido: FunctionComponent<ViewProps> = () => {
                         amount = solBalanceSol;
                       }
 
-                      setEnteredAmount(amount);
+                      setEnteredSolAmount(amount);
                     }}
-                    value={enteredAmount}
+                    value={enteredSolAmount}
                   />
 
                   <div className="">
                     <Button
-                      onClick={() => handleStake.mutateAsync()}
+                      onClick={() =>
+                        enteredSolAmount &&
+                        handleStake.mutateAsync({ enteredAmount: enteredSolAmount })
+                      }
                       isLoading={handleStake.isLoading || exchangeRate.isLoading}
                       disabled={
-                        handleStake.isLoading || !pk || !enteredAmount || exchangeRate.isLoading
+                        handleStake.isLoading || !pk || !enteredSolAmount || exchangeRate.isLoading
                       }
                       className="w-full my-8"
                       text="Stake SOL"
@@ -113,22 +128,28 @@ const Lido: FunctionComponent<ViewProps> = () => {
                     step="0.01"
                     onChange={(e) => {
                       let amount = parseFloat(e.target.value);
-                      const solBalanceSol = lamportsToSol(solBalance.toNumber());
-                      if (amount > solBalanceSol) {
-                        amount = solBalanceSol;
+                      const stSolbalanceSol = lamportsToSol(stSolBalance.toNumber());
+                      if (amount > stSolbalanceSol) {
+                        amount = stSolbalanceSol;
                       }
 
-                      setEnteredAmount(amount);
+                      setEnteredStSolAmount(amount);
                     }}
-                    value={enteredAmount}
+                    value={enteredStSolAmount}
                   />
 
                   <div className="">
                     <Button
-                      onClick={() => handleStake.mutateAsync()}
-                      isLoading={handleStake.isLoading || exchangeRate.isLoading}
+                      onClick={() =>
+                        enteredStSolAmount &&
+                        handleUnstake.mutateAsync({ enteredAmount: enteredStSolAmount })
+                      }
+                      isLoading={handleUnstake.isLoading || exchangeRate.isLoading}
                       disabled={
-                        handleStake.isLoading || !pk || !enteredAmount || exchangeRate.isLoading
+                        handleUnstake.isLoading ||
+                        !pk ||
+                        !enteredStSolAmount ||
+                        exchangeRate.isLoading
                       }
                       className="w-full my-8"
                       text="Unstake stSOL"
@@ -142,6 +163,9 @@ const Lido: FunctionComponent<ViewProps> = () => {
           <div className="grid grid-cols-2 gap-4 relative">
             <p>Available SOL:</p>
             <p className="text-right">{lamportsToSol(solBalance.toNumber()).toFixed(4)} SOL</p>
+
+            <p>Available stSOL:</p>
+            <p className="text-right">{lamportsToSol(stSolBalance.toNumber()).toFixed(4)} stSOL</p>
 
             <p>You will receive:</p>
             <p className="text-right">~ {willReceive.toFixed(4)} stSOL</p>
@@ -191,7 +215,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
           )) ||
             stakeData.data?.map((row) => (
               <StakedRow
-                key={row.voter}
+                key={row.stakeAccount.toString()}
                 data={row}
                 isLoading={handleWithdraw.isLoading}
                 onWithdraw={() =>
