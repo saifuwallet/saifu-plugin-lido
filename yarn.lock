@@ -118,6 +118,11 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
+"@headlessui/react@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.5.0.tgz#483b44ba2c8b8d4391e1d2c863898d7dd0cc0296"
+  integrity sha512-aaRnYxBb3MU2FNJf3Ut9RMTUqqU3as0aI1lQhgo2n9Fa67wRu14iOGqx93xB+uMNVfNwZ5B3y/Ndm7qZGuFeMQ==
+
 "@heroicons/react@^1.0.5":
   version "1.0.5"
   resolved "https://registry.npmjs.org/@heroicons/react/-/react-1.0.5.tgz"
@@ -4005,7 +4010,7 @@ safer-buffer@^2.1.0:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-"saifu@github:saifuwallet/saifu-api#master":
+"saifu@github:saifuwallet/saifu-api":
   version "0.1.5"
   resolved "https://codeload.github.com/saifuwallet/saifu-api/tar.gz/6091cbd49b59553fb01a26d133c71de28e824936"
   dependencies:
