@@ -6,6 +6,7 @@ export type TokenLogoProps = {
   alt?: string;
   size?: keyof typeof sizes;
   shape?: keyof typeof shapes;
+  className?: string;
 };
 
 const shapes = {
@@ -19,18 +20,18 @@ const sizes = {
   lg: 'h-24 w-24',
 };
 
-const TokenLogo = ({ url, alt, size = 'md', shape = 'round' }: TokenLogoProps) => {
+const TokenLogo = ({ className, url, alt, size = 'md', shape = 'round' }: TokenLogoProps) => {
   return (
     <>
       {url ? (
         <img
           loading="lazy"
-          className={clsx('shadow-lg', sizes[size], shapes[shape])}
+          className={clsx('shadow-lg', sizes[size], shapes[shape], className)}
           src={url}
           alt={alt}
         />
       ) : (
-        <QuestionMarkCircleIcon className={clsx('text-gray-400', sizes[size])} />
+        <QuestionMarkCircleIcon className={clsx('text-gray-400', sizes[size], className)} />
       )}
     </>
   );

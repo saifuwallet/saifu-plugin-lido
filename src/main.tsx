@@ -2,16 +2,16 @@ import { Tab } from '@headlessui/react';
 import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
-import { FunctionComponent, useState } from 'react';
+import { FunctionComponent, useMemo, useState } from 'react';
 import { Plugin, usePublicKey, useTokenAccounts, useTokenInfos, ViewProps } from 'saifu';
 
 import useHandleWithdraw from '@/hooks/useHandleWithdraw';
 import useStsolExchangeRate from '@/hooks/useStsolExchangeRate';
 import useValidatorStakeData from '@/hooks/useValidatorStakeData';
 
+import AmountInput from './components/AmountInput';
 import Button from './components/Button';
 import { LidoIcon, LidoIconText } from './components/Icon';
-import SolanaLogo from './components/SolanaLogo';
 import Spinner from './components/Spinner';
 import StakedRow from './components/StakedRow';
 import TokenBalance from './components/TokenBalance';
@@ -24,8 +24,8 @@ import useHandleUnstake from './hooks/useHandleUnstake';
 const Lido: FunctionComponent<ViewProps> = () => {
   const pk = usePublicKey();
 
-  const [enteredSolAmount, setEnteredSolAmount] = useState<number>();
-  const [enteredStSolAmount, setEnteredStSolAmount] = useState<number>();
+  const [enteredSolAmount, setEnteredSolAmount] = useState<string>();
+  const [enteredStSolAmount, setEnteredStSolAmount] = useState<string>();
 
   const stakeData = useValidatorStakeData();
   const exchangeRate = useStsolExchangeRate();
@@ -34,20 +34,25 @@ const Lido: FunctionComponent<ViewProps> = () => {
 
   console.log('stakedata', stakeData.data);
 
-  const solAccount = tokenAccounts.data?.find((t) => t.isSol);
-  const solBalance = new BN(solAccount?.amount || '0');
-
   const tokenInfos = useTokenInfos();
-  const tokenInfo = tokenInfos.find((t) => t.symbol === 'stSOL');
-  const stSolAccount = tokenAccounts.data?.find((t) => tokenInfo?.address === t.mint);
-  const stSolBalance = new BN(stSolAccount?.amount || '0');
+  const stSolInfo = useMemo(() => tokenInfos.find((t) => t.symbol === 'stSOL'), [tokenInfos]);
+  const solInfo = useMemo(() => tokenInfos.find((t) => t.address === 'sol'), [tokenInfos]);
 
-  console.log('stsolbalance -- ', stSolBalance.toString());
+  const solBalance = useMemo(() => {
+    const solAccount = tokenAccounts.data?.find((t) => t.isSol);
+    return new BN(solAccount?.amount || '0');
+  }, tokenAccounts.data);
+  const stSolBalance = useMemo(() => {
+    const stSolAccount = tokenAccounts.data?.find((t) => stSolInfo?.address === t.mint);
+    return new BN(stSolAccount?.amount || '0');
+  }, [tokenAccounts.data, stSolInfo]);
 
-  let willReceive = 0;
-  if (enteredSolAmount && enteredSolAmount !== 0 && exchangeRate.data) {
-    willReceive = enteredSolAmount / exchangeRate.data;
-  }
+  const willReceive = useMemo(() => {
+    if (enteredSolAmount && Number(enteredSolAmount) !== 0 && exchangeRate.data) {
+      return Number(enteredSolAmount) / exchangeRate.data;
+    }
+    return 0;
+  }, [enteredSolAmount, exchangeRate.data]);
 
   const handleStake = useHandleStake();
   const handleUnstake = useHandleUnstake();
@@ -62,7 +67,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
             <LidoIcon className="w-6 h-6 inline-block" variant="original" />
             <LidoIconText className="inline-block" />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-4">
             <Tab.Group>
               <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl">
                 {tabs.map((tabName) => (
@@ -84,89 +89,67 @@ const Lido: FunctionComponent<ViewProps> = () => {
               </Tab.List>
 
               <Tab.Panels>
-                <Tab.Panel key={'Stake'}>
-                  <SolanaLogo />
-                  <input
-                    className="w-full border-r border-[#d1d8df] focus:border-[#00a3ff] placeholder:text-[#d1d8df] rounded-xl px-12 py-4 text-sm"
-                    placeholder="Amount"
-                    type="number"
-                    step="0.01"
-                    onChange={(e) => {
-                      let amount = parseFloat(e.target.value);
-                      const solBalanceSol = lamportsToSol(solBalance.toNumber());
-                      if (amount > solBalanceSol) {
-                        amount = solBalanceSol;
-                      }
-
-                      setEnteredSolAmount(amount);
-                    }}
+                <Tab.Panel className="space-y-2" key="Stake">
+                  <AmountInput
+                    setValue={setEnteredSolAmount}
+                    symbol="SOL"
+                    logoUrl={solInfo?.logoURI}
                     value={enteredSolAmount}
+                    balance={lamportsToSol(solBalance.toNumber())}
                   />
 
-                  <div className="">
-                    <Button
-                      onClick={() =>
-                        enteredSolAmount &&
-                        handleStake.mutateAsync({ enteredAmount: enteredSolAmount })
-                      }
-                      isLoading={handleStake.isLoading || exchangeRate.isLoading}
-                      disabled={
-                        handleStake.isLoading || !pk || !enteredSolAmount || exchangeRate.isLoading
-                      }
-                      className="w-full my-8"
-                      text="Stake SOL"
-                    ></Button>
-                  </div>
+                  <Button
+                    onClick={() =>
+                      enteredSolAmount &&
+                      handleStake.mutateAsync({ enteredAmount: parseFloat(enteredSolAmount) })
+                    }
+                    isLoading={handleStake.isLoading || exchangeRate.isLoading}
+                    disabled={
+                      handleStake.isLoading ||
+                      !pk ||
+                      !enteredSolAmount ||
+                      exchangeRate.isLoading ||
+                      Number(enteredSolAmount) > lamportsToSol(solBalance.toNumber())
+                    }
+                    className="w-full"
+                    text={
+                      (Number(enteredSolAmount) > lamportsToSol(solBalance.toNumber()) &&
+                        'Insufficient Balance') ||
+                      'Stake'
+                    }
+                  />
                 </Tab.Panel>
-
-                <Tab.Panel key={'Unstake'}>
-                  <SolanaLogo />
-                  <input
-                    className="w-full border-r border-[#d1d8df] focus:border-[#00a3ff] placeholder:text-[#d1d8df] rounded-xl px-12 py-4 text-sm"
-                    placeholder="Amount"
-                    type="number"
-                    step="0.01"
-                    onChange={(e) => {
-                      let amount = parseFloat(e.target.value);
-                      const stSolbalanceSol = lamportsToSol(stSolBalance.toNumber());
-                      if (amount > stSolbalanceSol) {
-                        amount = stSolbalanceSol;
-                      }
-
+                <Tab.Panel className="space-y-2" key="Unstake">
+                  <AmountInput
+                    symbol="stSOL"
+                    value={enteredStSolAmount}
+                    setValue={(amount) => {
                       setEnteredStSolAmount(amount);
                     }}
-                    value={enteredStSolAmount}
+                    balance={lamportsToSol(stSolBalance.toNumber())}
+                    logoUrl={stSolInfo?.logoURI}
                   />
-
-                  <div className="">
-                    <Button
-                      onClick={() =>
-                        enteredStSolAmount &&
-                        handleUnstake.mutateAsync({ enteredAmount: enteredStSolAmount })
-                      }
-                      isLoading={handleUnstake.isLoading || exchangeRate.isLoading}
-                      disabled={
-                        handleUnstake.isLoading ||
-                        !pk ||
-                        !enteredStSolAmount ||
-                        exchangeRate.isLoading
-                      }
-                      className="w-full my-8"
-                      text="Unstake stSOL"
-                    ></Button>
-                  </div>
+                  <Button
+                    onClick={() =>
+                      enteredStSolAmount &&
+                      handleUnstake.mutateAsync({ enteredAmount: parseFloat(enteredStSolAmount) })
+                    }
+                    isLoading={handleUnstake.isLoading || exchangeRate.isLoading}
+                    disabled={
+                      handleUnstake.isLoading ||
+                      !pk ||
+                      !enteredStSolAmount ||
+                      exchangeRate.isLoading
+                    }
+                    className="w-full"
+                    text="Unstake"
+                  />
                 </Tab.Panel>
               </Tab.Panels>
             </Tab.Group>
           </div>
 
           <div className="grid grid-cols-2 gap-4 relative">
-            <p>Available SOL:</p>
-            <p className="text-right">{lamportsToSol(solBalance.toNumber()).toFixed(4)} SOL</p>
-
-            <p>Available stSOL:</p>
-            <p className="text-right">{lamportsToSol(stSolBalance.toNumber()).toFixed(4)} stSOL</p>
-
             <p>You will receive:</p>
             <p className="text-right">~ {willReceive.toFixed(4)} stSOL</p>
 
@@ -180,7 +163,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
             <p className="text-right">10%</p>
 
             <p>Lido Staking APR</p>
-            <p className="text-right">
+            <p className="text-right font-bold">
               {lidoStats.data?.apr.toFixed(2).concat('%') || (
                 <Spinner className="absolute right-0" />
               )}
