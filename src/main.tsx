@@ -42,7 +42,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
   const solBalance = useMemo(() => {
     const solAccount = tokenAccounts.data?.find((t) => t.isSol);
     return new BN(solAccount?.amount || '0');
-  }, tokenAccounts.data);
+  }, [tokenAccounts.data]);
 
   const stSolBalance = useMemo(() => {
     const stSolAccount = tokenAccounts.data?.find((t) => stSolInfo?.address === t.mint);
