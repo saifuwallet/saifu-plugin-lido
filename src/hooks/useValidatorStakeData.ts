@@ -26,7 +26,7 @@ const useValidatorStakeData = () => {
         return;
       }
 
-      const promises = res.map((acc) => {
+      const promises: Promise<StakeData | null>[] = res.map((acc) => {
         const parsedData = (acc.account.data as any).parsed as ParsedStakeAccount;
 
         // if no stake available, just bail
@@ -55,7 +55,7 @@ const useValidatorStakeData = () => {
         });
       });
 
-      return (await Promise.all(promises)).filter((x) => !!x);
+      return (await Promise.all(promises)).filter((x) => !!x) as StakeData[];
     }
   });
 };

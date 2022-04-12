@@ -16,10 +16,10 @@ import Spinner from './components/Spinner';
 import StakedRow from './components/StakedRow';
 import TokenBalance from './components/TokenBalance';
 import useHandleStake from './hooks/useHandleStake';
+import useHandleUnstake from './hooks/useHandleUnstake';
 import useLidoStats from './hooks/useLidoStats';
 import { lamportsToSol } from './lib/number';
 import './style.css';
-import useHandleUnstake from './hooks/useHandleUnstake';
 
 const Lido: FunctionComponent<ViewProps> = () => {
   const pk = usePublicKey();
@@ -27,12 +27,13 @@ const Lido: FunctionComponent<ViewProps> = () => {
   const [enteredSolAmount, setEnteredSolAmount] = useState<string>();
   const [enteredStSolAmount, setEnteredStSolAmount] = useState<string>();
 
+  const [unstakeError, setUnstakeError] = useState<string>();
+  const [stakeError, setStakeError] = useState<string>();
+
   const stakeData = useValidatorStakeData();
   const exchangeRate = useStsolExchangeRate();
   const lidoStats = useLidoStats();
   const tokenAccounts = useTokenAccounts();
-
-  console.log('stakedata', stakeData.data);
 
   const tokenInfos = useTokenInfos();
   const stSolInfo = useMemo(() => tokenInfos.find((t) => t.symbol === 'stSOL'), [tokenInfos]);
@@ -110,7 +111,9 @@ const Lido: FunctionComponent<ViewProps> = () => {
                   <Button
                     onClick={() =>
                       enteredSolAmount &&
-                      handleStake.mutateAsync({ enteredAmount: parseFloat(enteredSolAmount) })
+                      handleStake
+                        .mutateAsync({ enteredAmount: parseFloat(enteredSolAmount) })
+                        .catch((e) => setStakeError((e as Error).toString()))
                     }
                     isLoading={handleStake.isLoading || exchangeRate.isLoading}
                     disabled={
@@ -123,6 +126,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
                     className="w-full"
                     text={(insufficientSol && 'Insufficient Balance') || 'Stake'}
                   />
+                  <p className="text-red-400">{stakeError}</p>
                 </Tab.Panel>
                 <Tab.Panel className="space-y-2" key="Unstake">
                   <AmountInput
@@ -137,7 +141,9 @@ const Lido: FunctionComponent<ViewProps> = () => {
                   <Button
                     onClick={() =>
                       enteredStSolAmount &&
-                      handleUnstake.mutateAsync({ enteredAmount: parseFloat(enteredStSolAmount) })
+                      handleUnstake
+                        .mutateAsync({ enteredAmount: parseFloat(enteredStSolAmount) })
+                        .catch((e) => setUnstakeError((e as Error).toString()))
                     }
                     isLoading={handleUnstake.isLoading || exchangeRate.isLoading}
                     disabled={
@@ -150,6 +156,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
                     className="w-full"
                     text={(insufficientStSol && 'Insufficient Balance') || 'Unstake'}
                   />
+                  <p className="text-red-400">{unstakeError}</p>
                 </Tab.Panel>
               </Tab.Panels>
             </Tab.Group>
