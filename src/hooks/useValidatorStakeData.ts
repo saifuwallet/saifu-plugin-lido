@@ -29,6 +29,12 @@ const useValidatorStakeData = () => {
       const promises = res.map((acc) => {
         const parsedData = (acc.account.data as any).parsed as ParsedStakeAccount;
 
+        // if no stake available, just bail
+        // this includes accounts that are just initialized too
+        if (!parsedData.info.stake) {
+          return new Promise((resolve) => resolve(null));
+        }
+
         const voter = parsedData.info.stake.delegation.voter;
         return new Promise<StakeData>((resolve, reject) => {
           (async () => {
@@ -49,7 +55,7 @@ const useValidatorStakeData = () => {
         });
       });
 
-      return await Promise.all(promises);
+      return (await Promise.all(promises)).filter((x) => !!x);
     }
   });
 };

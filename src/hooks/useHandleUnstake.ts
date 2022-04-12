@@ -39,14 +39,9 @@ const useHandleUnstake = () => {
 
     // create new account to be used as stakingaccount
     const lidoStakeAccount = Keypair.generate();
-    const insts: TransactionInstruction[] = [];
-
-    const stakeCreateAccInst = StakeProgram.createAccount({
-      authorized: new Authorized(pk, pk), // Here we set two authorities: Stake Authority and Withdrawal Authority. Both are set to our wallet.
-      fromPubkey: pk,
-      // lamports: snapshot.stakeAccountRentExemptionBalance.lamports.toNumber(), // set the account as rent exempt
-      lamports: 0, // set the account as rent exempt
+    const deactivateTx = StakeProgram.deactivate({
       stakePubkey: lidoStakeAccount.publicKey,
+      authorizedPubkey: pk,
     });
 
 
@@ -60,8 +55,8 @@ const useHandleUnstake = () => {
     );
 
     const tx = new Transaction();
-    // tx.add(withdrawInstruction);
-    tx.add(...stakeCreateAccInst.instructions);
+    tx.add(withdrawInstruction);
+    tx.add(...deactivateTx.instructions);
 
     tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.feePayer = pk;
