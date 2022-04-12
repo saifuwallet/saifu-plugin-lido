@@ -46,7 +46,7 @@ const useHandleUnstake = () => {
 
     tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.feePayer = pk;
-    tx.sign(lidoStakeAccount);
+    tx.partialSign(lidoStakeAccount);
 
     signAllTxs([tx]);
   });
