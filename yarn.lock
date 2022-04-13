@@ -4010,9 +4010,10 @@ safer-buffer@^2.1.0:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-"saifu@github:saifuwallet/saifu-api":
-  version "0.1.5"
-  resolved "https://codeload.github.com/saifuwallet/saifu-api/tar.gz/6091cbd49b59553fb01a26d133c71de28e824936"
+saifu@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/saifu/-/saifu-0.2.0.tgz#90886d016c9cf2a7ec8519b745ef3d1587f4d258"
+  integrity sha512-1Su/ftiFrWxKRaiqLkB21g4mxniay5/eMBb6tog6iClMpKiuucrQY+VeDsoV7uvNGX+b/2wGd77bF3Ysp4SzhA==
   dependencies:
     "@solana/spl-token-registry" "^0.2.2911"
     "@solana/web3.js" "^1.35.1"
