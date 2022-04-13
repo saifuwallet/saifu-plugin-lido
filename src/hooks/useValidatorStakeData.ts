@@ -29,15 +29,9 @@ const useValidatorStakeData = () => {
       const promises: Promise<StakeData | null>[] = res.map((acc) => {
         const parsedData = (acc.account.data as any).parsed as ParsedStakeAccount;
 
-        // if no stake available, just bail
-        // this includes accounts that are just initialized too
-        if (!parsedData.info.stake) {
-          return new Promise((resolve) => resolve(null));
-        }
-
-        const voter = parsedData.info.stake.delegation.voter;
         return new Promise<StakeData>((resolve, reject) => {
           (async () => {
+            const voter = parsedData.info.stake?.delegation.voter || '';
             const balance = await connection.getBalance(acc.pubkey);
 
             connection
@@ -55,7 +49,9 @@ const useValidatorStakeData = () => {
         });
       });
 
-      return (await Promise.all(promises)).filter((x) => !!x) as StakeData[];
+      return (await Promise.all(promises))
+        .filter((x) => !!x)
+        .sort((a, b) => (b?.balance ?? 0) - (a?.balance ?? 0)) as StakeData[];
     }
   });
 };

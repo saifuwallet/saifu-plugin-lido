@@ -203,7 +203,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
         <div className="space-y-2">
           <TokenBalance exchangeRate={exchangeRate.data || 0} />
 
-          {((stakeData.isLoading || !stakeData.isSuccess) && (
+          {((stakeData.isLoading || !stakeData.isSuccess || stakeData.isFetching) && (
             <div>
               <Spinner className="inline-block" />
               <p className="inline-block">Searching staking accounts</p>
