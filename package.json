@@ -1,6 +1,6 @@
 {
   "name": "@saifuwallet/saifu-plugin-lido",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:saifuwallet/saifu-plugin-lido.git",
