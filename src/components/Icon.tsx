@@ -1,24 +1,18 @@
-const variants = {
-  original: '',
-  white: '',
-};
-
 export type IconProps = {
-  variant?: keyof typeof variants;
   className?: string;
 };
 
-export const LidoIcon = ({ className, variant }: IconProps) => (
+export const LidoIcon = ({ className }: IconProps) => (
   <svg className={className} width="14" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       fillRule="evenodd"
       clipRule="evenodd"
       d="M7.007 0l4.95 7.748-4.95 2.884-4.95-2.884L7.007 0zM3.572 7.381l3.435-5.376 3.434 5.376-3.435 2.002L3.572 7.38z"
-      fill={(variant === 'white' && '#FFFFFF') || '#00A3FF'}
+      fill="#00A3FF"
     ></path>
     <path
       d="M7 12.335L1.257 8.99l-.157.245a6.998 6.998 0 00.95 8.716 7 7 0 009.899 0 6.998 6.998 0 00.95-8.716l-.158-.245L7 12.335z"
-      fill={(variant === 'white' && '#FFFFFF') || '#00A3FF'}
+      fill="#00A3FF"
     ></path>
   </svg>
 );

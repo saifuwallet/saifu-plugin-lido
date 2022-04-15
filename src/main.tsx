@@ -74,7 +74,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
       <div className="w-full bg-white rounded-md">
         <div className="space-y-4 p-6">
           <div className="m-auto block text-center mb-2">
-            <LidoIcon className="w-6 h-6 inline-block" variant="original" />
+            <LidoIcon className="w-6 h-6 inline-block" />
             <LidoIconText className="inline-block" />
           </div>
           <div className="space-y-4">
@@ -259,7 +259,7 @@ class LidoPlugin extends Plugin {
       title: 'Stake',
       id: 'lido',
       component: Lido,
-      icon: <LidoIcon variant="white" className="h-5 w-5 ml-[3px]" />,
+      icon: <LidoIcon className="h-5 w-5 ml-[3px]" />,
     });
   }
 }
