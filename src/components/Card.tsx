@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import Spinner from './Spinner';
 
 const variants = {
-  primary: 'bg-white/70 border border-white/40',
+  primary: 'bg-white',
   highlight: 'bg-gradient-to-br from-pink-500 to-orange-400 text-white border border-white/40',
 };
 
