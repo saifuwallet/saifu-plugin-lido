@@ -3,7 +3,7 @@ import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
 import { FunctionComponent, useMemo, useState } from 'react';
-import { Plugin, usePublicKey, useTokenAccounts, useTokenInfos, ViewProps } from 'saifu';
+import { Plugin, useParams, usePublicKey, useTokenAccounts, useTokenInfos, ViewProps } from 'saifu';
 
 import useHandleWithdraw from '@/hooks/useHandleWithdraw';
 import useStsolExchangeRate from '@/hooks/useStsolExchangeRate';
@@ -21,14 +21,25 @@ import useLidoStats from './hooks/useLidoStats';
 import { lamportsToSol } from './lib/number';
 import './style.css';
 
-const Lido: FunctionComponent<ViewProps> = () => {
+const stSolMint = '7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj';
+
+const actionToTabindex = (action: string | null) => {
+  if (!action || action === 'stake') {
+    return 0;
+  }
+  return 1;
+};
+
+const Lido: FunctionComponent = () => {
   const pk = usePublicKey();
+  const params = useParams();
 
   const [enteredSolAmount, setEnteredSolAmount] = useState<string>();
   const [enteredStSolAmount, setEnteredStSolAmount] = useState<string>();
 
   const [unstakeError, setUnstakeError] = useState<string>();
   const [stakeError, setStakeError] = useState<string>();
+  const [selectedIndex, setSelectedIndex] = useState(actionToTabindex(params.get('action')));
 
   const stakeData = useValidatorStakeData();
   const exchangeRate = useStsolExchangeRate();
@@ -78,7 +89,7 @@ const Lido: FunctionComponent<ViewProps> = () => {
             <LidoIconText className="inline-block" />
           </div>
           <div className="space-y-4">
-            <Tab.Group>
+            <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
               <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl">
                 {tabs.map((tabName) => (
                   <Tab
@@ -252,8 +263,6 @@ const Lido: FunctionComponent<ViewProps> = () => {
 };
 
 class LidoPlugin extends Plugin {
-  id = 'lido';
-
   async onload(): Promise<void> {
     this.addView({
       title: 'Stake',
@@ -261,6 +270,22 @@ class LidoPlugin extends Plugin {
       component: Lido,
       icon: <LidoIcon className="h-5 w-5 ml-[3px]" />,
     });
+
+    this.addTokenAction('sol', 'Stake with Lido', ({ pluginNavigate }) => {
+      pluginNavigate('lido', new URLSearchParams({ action: 'stake' }));
+    });
+
+    this.addTokenAction(stSolMint, 'Unstake with Lido', ({ pluginNavigate }) => {
+      pluginNavigate('lido', new URLSearchParams({ action: 'unstake' }));
+    });
+
+    // this.addTokenAction(
+    //   ({ tokenInfo }) => tokenInfo.symbol === 'stSOL',
+    //   'Unstake with Lido',
+    //   ({ pluginNavigate }) => {
+    //     pluginNavigate('lido', new URLSearchParams({ action: 'unstake' }));
+    //   }
+    // );
   }
 }
 

@@ -1,5 +1,5 @@
 {
-  "id": "saifu-plugin-lido",
+  "id": "saifu-plugin-lido-dev",
   "name": "Lido",
   "description": "Stake and unstake SOL on Lido",
   "version": "1.0.1"
