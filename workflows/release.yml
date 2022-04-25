@@ -31,8 +31,7 @@ jobs:
       - run: "yarn"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_PKG_REGISTRY_TOKEN }}
-      - run: "yarn lint"
-      - run: "yarn validate-versions"
+      - run: "yarn validate"
       - run: "yarn"
       - run: "yarn build"
       - run: "yarn publish"
