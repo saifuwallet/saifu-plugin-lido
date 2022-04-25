@@ -3,7 +3,7 @@ import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
 import { FunctionComponent, useMemo, useState } from 'react';
-import { Plugin, useParams, usePublicKey, useTokenAccounts, useTokenInfos, ViewProps } from 'saifu';
+import { Plugin, useParams, usePublicKey, useTokenAccounts, useTokenInfos } from 'saifu';
 
 import useHandleWithdraw from '@/hooks/useHandleWithdraw';
 import useStsolExchangeRate from '@/hooks/useStsolExchangeRate';

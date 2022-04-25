@@ -44,7 +44,9 @@ module.exports = {
         ],
         'linebreak-style': ['error', 'unix'],
         'react/prop-types': 'off',
-
+        'import/no-unresolved': ['error', {
+          'ignore': ['react']
+        }],
         'import/order': [
           'error',
           {
