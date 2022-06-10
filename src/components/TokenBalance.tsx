@@ -15,8 +15,6 @@ const TokenBalance = ({ exchangeRate }: { exchangeRate: number }) => {
   const solInfo = tokenInfos.find((t) => t.symbol === 'SOL');
   const solPrice = usePrice(solInfo);
 
-  const price = solPrice.data || 1 * exchangeRate;
-
   return (
     <Card className="flex space-x-2 p-4">
       <div className="flex-none">
@@ -28,8 +26,16 @@ const TokenBalance = ({ exchangeRate }: { exchangeRate: number }) => {
         </Text>
       </div>
       <div className="flex-none text-right">
-        <Text weight="semibold">{lamportsToSol(stSolAmount.toNumber())}</Text>
-        <Text>{lamportsToUSD(stSolAmount.toNumber(), price || 0, stSolInfo?.decimals)}</Text>
+        <Text as="p" weight="semibold">
+          {lamportsToSol(stSolAmount.toNumber())}
+        </Text>
+        <Text as="p">
+          {lamportsToUSD(
+            stSolAmount.toNumber(),
+            solPrice.data || 1 * exchangeRate,
+            stSolInfo?.decimals
+          )}
+        </Text>
       </div>
     </Card>
   );
