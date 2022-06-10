@@ -1,18 +1,16 @@
 import { Tab } from '@headlessui/react';
+import { AmountInput, Button, Card, Spinner, Text } from '@saifuwallet/saifu-ui';
 import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
-import { FunctionComponent, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plugin, useParams, usePublicKey, useTokenAccounts, useTokenInfos } from 'saifu';
 
 import useHandleWithdraw from '@/hooks/useHandleWithdraw';
 import useStsolExchangeRate from '@/hooks/useStsolExchangeRate';
 import useValidatorStakeData from '@/hooks/useValidatorStakeData';
 
-import AmountInput from './components/AmountInput';
-import Button from './components/Button';
 import { LidoIcon, LidoIconText } from './components/Icon';
-import Spinner from './components/Spinner';
 import StakedRow from './components/StakedRow';
 import TokenBalance from './components/TokenBalance';
 import useHandleStake from './hooks/useHandleStake';
@@ -30,7 +28,7 @@ const actionToTabindex = (action: string | null) => {
   return 1;
 };
 
-const Lido: FunctionComponent = () => {
+const Lido = () => {
   const pk = usePublicKey();
   const params = useParams();
 
@@ -82,7 +80,7 @@ const Lido: FunctionComponent = () => {
 
   return (
     <div>
-      <div className="w-full bg-white rounded-md">
+      <Card className="w-full">
         <div className="space-y-4 p-6">
           <div className="m-auto block text-center mb-2">
             <LidoIcon className="w-6 h-6 inline-block" />
@@ -112,11 +110,11 @@ const Lido: FunctionComponent = () => {
               <Tab.Panels>
                 <Tab.Panel className="space-y-2" key="Stake">
                   <AmountInput
-                    setValue={setEnteredSolAmount}
+                    setAmount={setEnteredSolAmount}
                     symbol="SOL"
-                    logoUrl={solInfo?.logoURI}
-                    value={enteredSolAmount}
-                    balance={lamportsToSol(solBalance.toNumber())}
+                    logoURI={solInfo?.logoURI}
+                    amount={enteredSolAmount}
+                    max={lamportsToSol(solBalance.toNumber()).toString()}
                   />
 
                   <Button
@@ -135,19 +133,22 @@ const Lido: FunctionComponent = () => {
                       insufficientSol
                     }
                     className="w-full"
-                    text={(insufficientSol && 'Insufficient Balance') || 'Stake'}
-                  />
-                  <p className="text-red-400">{stakeError}</p>
+                  >
+                    {(insufficientSol && 'Insufficient Balance') || 'Stake'}
+                  </Button>
+                  {stakeError && (
+                    <Text as="p" className="text-red-400">
+                      {stakeError}
+                    </Text>
+                  )}
                 </Tab.Panel>
                 <Tab.Panel className="space-y-2" key="Unstake">
                   <AmountInput
                     symbol="stSOL"
-                    value={enteredStSolAmount}
-                    setValue={(amount) => {
-                      setEnteredStSolAmount(amount);
-                    }}
-                    balance={lamportsToSol(stSolBalance.toNumber())}
-                    logoUrl={stSolInfo?.logoURI}
+                    amount={enteredStSolAmount}
+                    setAmount={setEnteredStSolAmount}
+                    max={lamportsToSol(stSolBalance.toNumber()).toString()}
+                    logoURI={stSolInfo?.logoURI}
                   />
                   <Button
                     onClick={() =>
@@ -165,39 +166,64 @@ const Lido: FunctionComponent = () => {
                       insufficientStSol
                     }
                     className="w-full"
-                    text={(insufficientStSol && 'Insufficient Balance') || 'Unstake'}
-                  />
-                  <p className="text-red-400">{unstakeError}</p>
+                  >
+                    {(insufficientStSol && 'Insufficient Balance') || 'Unstake'}
+                  </Button>
+                  {unstakeError && (
+                    <Text as="p" className="text-red-400">
+                      {unstakeError}
+                    </Text>
+                  )}
                 </Tab.Panel>
               </Tab.Panels>
             </Tab.Group>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 relative">
-            <p>You will receive:</p>
-            <p className="text-right">~ {willReceive.toFixed(4)} stSOL</p>
+          <div className="grid grid-cols-2 gap-2 relative">
+            <Text size="sm" as="p">
+              You will receive:
+            </Text>
+            <Text size="sm" as="p" className="text-right">
+              ~ {willReceive.toFixed(4)} stSOL
+            </Text>
 
-            <p>Exchange Rate:</p>
-            <p className="text-right">1 stSOL = ~{exchangeRate.data?.toFixed(4)} SOL</p>
+            <Text size="sm" as="p">
+              Exchange Rate:
+            </Text>
+            <Text size="sm" as="p" className="text-right">
+              1 stSOL = ~{exchangeRate.data?.toFixed(4)} SOL
+            </Text>
 
-            <p>Transaction Cost</p>
-            <p className="text-right">~ 0.000005 SOL</p>
+            <Text size="sm" as="p">
+              Transaction Cost
+            </Text>
+            <Text size="sm" as="p" className="text-right">
+              ~ 0.000005 SOL
+            </Text>
 
-            <p>Lido staking rewards fee</p>
-            <p className="text-right">10%</p>
+            <Text size="sm" as="p">
+              Lido staking rewards fee
+            </Text>
+            <Text size="sm" as="p" className="text-right">
+              10%
+            </Text>
 
-            <p>Lido Staking APR</p>
-            <p className="text-right font-bold">
+            <Text size="sm" as="p">
+              Lido Staking APR
+            </Text>
+            <Text weight="semibold" size="sm" as="p" className="text-right">
               {lidoStats.data?.apr.toFixed(2).concat('%') || (
                 <Spinner className="absolute right-0" />
               )}
-            </p>
+            </Text>
           </div>
         </div>
-      </div>
+      </Card>
 
       <div className="mt-8 space-y-2">
-        <h2 className="text-xl font-bold my-2">Staking overview</h2>
+        <Text size="xl" weight="bold" className="my-2">
+          Staking overview
+        </Text>
         <p className="p-4 bg-[#00a3ff10] text-[#00a3ff]">
           SOL becomes withdrawable after it has finished deactivating which will take 2~3 days upon
           unstaking.{' '}
@@ -237,8 +263,10 @@ const Lido: FunctionComponent = () => {
       </div>
 
       <div className="mt-8">
-        <h2 className="text-xl font-bold my-2">Lido statistics</h2>
-        <div className="w-full bg-white rounded-md ">
+        <Text size="xl" weight="bold" className="my-2">
+          Lido statistics
+        </Text>
+        <Card className="w-full p-2">
           <div className="space-y-4 p-6">
             <div className="grid grid-cols-2 gap-4 relative">
               <p>Total staked with Lido:</p>
@@ -256,7 +284,7 @@ const Lido: FunctionComponent = () => {
               </p>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

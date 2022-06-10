@@ -1,11 +1,8 @@
+import { Button, Card, Text, TokenLogo } from '@saifuwallet/saifu-ui';
 import { PublicKey, StakeActivationData } from '@solana/web3.js';
 import { useTokenInfos } from 'saifu';
 
 import { lamportsToSol } from '@/lib/number';
-
-import Button from './Button';
-import Card from './Card';
-import TokenLogo from './TokenLogo';
 
 export interface StakeData {
   voter: string;
@@ -29,24 +26,23 @@ const StakedRow = ({
   const isWithdrawable = data.stakeActivationData.state === 'inactive';
 
   return (
-    <Card className="flex space-x-2">
+    <Card className="flex space-x-2 p-2">
       <div className="flex-none">
-        <TokenLogo url={tokenInfo?.logoURI} alt="Solana Logo" />
+        <TokenLogo url={tokenInfo?.logoURI} />
       </div>
       <div className="flex-grow text-left">
-        <p className="font-bold">{tokenInfo?.symbol} </p>
-        <p>{lamportsToSol(data.balance)} SOL</p>
+        <Text as="p" className="font-bold">
+          {tokenInfo?.symbol}
+        </Text>
+        <Text as="p">{lamportsToSol(data.balance)} SOL</Text>
       </div>
       <div className="flex-none text-right">
-        <p className="font-bold">{data.stakeActivationData.state}</p>
-        <p className="">
-          <Button
-            isLoading={isLoading}
-            onClick={onWithdraw}
-            disabled={!isWithdrawable || isLoading}
-            text="Withdraw"
-          />
-        </p>
+        <Text as="p" weight="bold">
+          {data.stakeActivationData.state}
+        </Text>
+        <Button isLoading={isLoading} onClick={onWithdraw} disabled={!isWithdrawable || isLoading}>
+          Withdraw
+        </Button>
       </div>
     </Card>
   );

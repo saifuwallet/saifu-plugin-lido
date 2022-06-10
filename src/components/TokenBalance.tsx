@@ -1,10 +1,8 @@
+import { Card, Text, TokenLogo } from '@saifuwallet/saifu-ui';
 import BN from 'bn.js';
 import { useTokenInfos, usePrice, useTokenAccounts } from 'saifu';
 
 import { lamportsToSol, lamportsToUSD } from '@/lib/number';
-
-import Card from './Card';
-import TokenLogo from './TokenLogo';
 
 const TokenBalance = ({ exchangeRate }: { exchangeRate: number }) => {
   const tokenAccounts = useTokenAccounts();
@@ -20,17 +18,18 @@ const TokenBalance = ({ exchangeRate }: { exchangeRate: number }) => {
   const price = solPrice.data || 1 * exchangeRate;
 
   return (
-    <Card className="flex space-x-2">
+    <Card className="flex space-x-2 p-4">
       <div className="flex-none">
-        <TokenLogo url={stSolInfo?.logoURI} alt="stSOL Logo" />
+        <TokenLogo url={stSolInfo?.logoURI} />
       </div>
       <div className="flex-grow text-left">
-        <p className="font-bold">{stSolInfo?.symbol} </p>
-        <p>-</p>
+        <Text as="p" weight="semibold">
+          {stSolInfo?.symbol}
+        </Text>
       </div>
       <div className="flex-none text-right">
-        <p className="font-bold">{lamportsToSol(stSolAmount.toNumber())}</p>
-        <p className="">{lamportsToUSD(stSolAmount.toNumber(), price || 0, stSolInfo?.decimals)}</p>
+        <Text weight="semibold">{lamportsToSol(stSolAmount.toNumber())}</Text>
+        <Text>{lamportsToUSD(stSolAmount.toNumber(), price || 0, stSolInfo?.decimals)}</Text>
       </div>
     </Card>
   );
