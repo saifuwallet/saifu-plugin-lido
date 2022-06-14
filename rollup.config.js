@@ -20,6 +20,7 @@ export default {
     sourcemap: (!isProd && 'inline') || false,
     format: 'system',
     exports: 'default',
+    compact: true,
   },
   external: ['saifu', 'react', 'react-dom',  '@saifuwallet/saifu-ui', '@babel/runtime/helpers/interopRequireDefault'],
   plugins: [
