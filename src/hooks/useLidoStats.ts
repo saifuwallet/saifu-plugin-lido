@@ -2,7 +2,7 @@ import { useQuery } from 'saifu';
 
 const statsUrl = 'https://solana.lido.fi/api/stats';
 
-interface LidoStats {
+export interface LidoStats {
   apr: number;
   numberOfStSolAccountsEmpty: number;
   numberOfStSolAccountsTotal: number;
@@ -20,10 +20,12 @@ interface LidoStats {
   };
 }
 
+export const fetchLidoStats = async () => {
+  return (await (await fetch(statsUrl)).json()) as LidoStats;
+};
+
 const useLidoStats = () => {
-  return useQuery('lido-stats', async () => {
-    return (await (await fetch(statsUrl)).json()) as LidoStats;
-  });
+  return useQuery('lido-stats', fetchLidoStats);
 };
 
 export default useLidoStats;

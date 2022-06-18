@@ -4182,6 +4182,16 @@ saifu@^0.4.3:
     react-query "^3.34.16"
     react-router-dom "^6.3.0"
 
+"saifu@github:saifuwallet/saifu-api#earn-api":
+  version "0.4.2"
+  resolved "https://codeload.github.com/saifuwallet/saifu-api/tar.gz/c9246d79b6672027799d72bcf7b294a9eb62eed7"
+  dependencies:
+    "@solana/spl-token-registry" "^0.2.2911"
+    "@solana/web3.js" "^1.35.1"
+    "@types/react" "^17.0.2"
+    react-query "^3.34.16"
+    react-router-dom "^6.3.0"
+
 scheduler@^0.20.2:
   version "0.20.2"
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.20.2.tgz#4baee39436e34aa93b4874bddcbf0fe8b8b50e91"
