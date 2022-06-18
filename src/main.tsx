@@ -321,7 +321,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
     ];
   }
 
-  async getOpportunitiesForMint(ctx: AppContext, mint: string) {
+  async getOpportunitiesForMint(_ctx: AppContext, mint: string) {
     if (mint !== 'sol') {
       return [];
     }
