@@ -1,6 +1,6 @@
 {
   "name": "@saifuwallet/saifu-plugin-lido",
-  "version": "1.1.5",
+  "version": "1.2.0-dev",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:saifuwallet/saifu-plugin-lido.git",
@@ -66,7 +66,8 @@
     "lint": "eslint --fix --ext .js,.ts,.tsx ./src --ignore-path .gitignore",
     "validate": "yarn lint && yarn check-types && yarn validate-versions",
     "check-types": "tsc --project tsconfig.json --pretty --noEmit",
-    "validate-versions": "node utils/validateVersions.js"
+    "validate-versions": "node utils/validateVersions.js",
+    "prepublish": "rm -rf dist/ && yarn validate && yarn build"
   },
   "browserslist": [
     ">0.2%",
