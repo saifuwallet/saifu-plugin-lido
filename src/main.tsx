@@ -4,7 +4,15 @@ import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
 import { useMemo, useState } from 'react';
-import { Plugin, useParams, usePublicKey, useTokenAccounts, useTokenInfos } from 'saifu';
+import {
+  AppContext,
+  EarnProvider,
+  Plugin,
+  useParams,
+  usePublicKey,
+  useTokenAccounts,
+  useTokenInfos,
+} from 'saifu';
 
 import useHandleWithdraw from '@/hooks/useHandleWithdraw';
 import useStsolExchangeRate from '@/hooks/useStsolExchangeRate';
@@ -15,7 +23,7 @@ import StakedRow from './components/StakedRow';
 import TokenBalance from './components/TokenBalance';
 import useHandleStake from './hooks/useHandleStake';
 import useHandleUnstake from './hooks/useHandleUnstake';
-import useLidoStats from './hooks/useLidoStats';
+import useLidoStats, { fetchLidoStats, LidoStats } from './hooks/useLidoStats';
 import { lamportsToSol } from './lib/number';
 import './style.css';
 
@@ -290,7 +298,45 @@ const Lido = () => {
   );
 };
 
-class LidoPlugin extends Plugin {
+class LidoPlugin extends Plugin implements EarnProvider {
+  lidoStats: LidoStats | undefined;
+
+  async getOrFetchlidoStats() {
+    if (this.lidoStats) {
+      return this.lidoStats;
+    }
+
+    return await fetchLidoStats();
+  }
+
+  async getOpportunities(ctx: AppContext) {
+    const stats = await this.getOrFetchlidoStats();
+
+    return [
+      {
+        title: `LIDO SOL Staking`,
+        mint: 'sol',
+        rate: (stats.apr ?? 0) * 100,
+      },
+    ];
+  }
+
+  async getOpportunitiesForMint(ctx: AppContext, mint: string) {
+    if (mint !== 'sol') {
+      return [];
+    }
+
+    const stats = await this.getOrFetchlidoStats();
+
+    return [
+      {
+        title: `LIDO SOL Staking`,
+        mint: 'sol',
+        rate: (stats.apr ?? 0) * 100,
+      },
+    ];
+  }
+
   async onload(): Promise<void> {
     this.addView({
       title: 'Stake',
@@ -307,13 +353,9 @@ class LidoPlugin extends Plugin {
       pluginNavigate('lido', new URLSearchParams({ action: 'unstake' }));
     });
 
-    // this.addTokenAction(
-    //   ({ tokenInfo }) => tokenInfo.symbol === 'stSOL',
-    //   'Unstake with Lido',
-    //   ({ pluginNavigate }) => {
-    //     pluginNavigate('lido', new URLSearchParams({ action: 'unstake' }));
-    //   }
-    // );
+    (async () => {
+      this.lidoStats = await fetchLidoStats();
+    })();
   }
 }
 
