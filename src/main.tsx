@@ -309,7 +309,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
     return await fetchLidoStats();
   }
 
-  async getOpportunities(ctx: AppContext) {
+  async getOpportunities(_ctx: AppContext) {
     const stats = await this.getOrFetchlidoStats();
 
     return [
