@@ -309,11 +309,23 @@ class LidoPlugin extends Plugin implements EarnProvider {
     return await fetchLidoStats();
   }
 
+  async getOpportunityBalance(appContext: AppContext) {
+    const foundAcc = appContext.tokenAccounts.find((acc) => acc.mint === stSolMint);
+
+    if (!foundAcc) {
+      return 0;
+    }
+
+    return parseInt(foundAcc.amount) ?? 0;
+  }
+
   async getOpportunities() {
+    console.log('lido loading');
     const stats = await this.getOrFetchlidoStats();
 
     return [
       {
+        id: 'stake',
         title: `LIDO SOL Staking`,
         mint: 'sol',
         rate: (stats.apr ?? 0) * 100,
@@ -321,15 +333,17 @@ class LidoPlugin extends Plugin implements EarnProvider {
     ];
   }
 
-  async getOpportunitiesForMint(_ctx: AppContext, mint: string) {
+  async getOpportunitiesForMint(ctx: AppContext, mint: string) {
     if (mint !== 'sol') {
       return [];
     }
 
+    console.log('lido loading');
     const stats = await this.getOrFetchlidoStats();
 
     return [
       {
+        id: 'stake',
         title: `LIDO SOL Staking`,
         mint: 'sol',
         rate: (stats.apr ?? 0) * 100,
@@ -352,10 +366,6 @@ class LidoPlugin extends Plugin implements EarnProvider {
     this.addTokenAction(stSolMint, 'Unstake with Lido', ({ pluginNavigate }) => {
       pluginNavigate('lido', new URLSearchParams({ action: 'unstake' }));
     });
-
-    (async () => {
-      this.lidoStats = await fetchLidoStats();
-    })();
   }
 }
 
