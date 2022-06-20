@@ -4171,20 +4171,9 @@ safer-buffer@^2.1.0:
   resolved "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-saifu@^0.4.3:
-  version "0.4.3"
-  resolved "https://registry.npmjs.org/saifu/-/saifu-0.4.3.tgz"
-  integrity sha512-vkopTSVv4dA/RQBeSRzPB6+AeYs66r2bFwmWo7cFBTEkBIW80MWDWdDP5h9/c479Rn2EXFgq8DFCm0xSghsLeA==
-  dependencies:
-    "@solana/spl-token-registry" "^0.2.2911"
-    "@solana/web3.js" "^1.35.1"
-    "@types/react" "^17.0.2"
-    react-query "^3.34.16"
-    react-router-dom "^6.3.0"
-
 "saifu@github:saifuwallet/saifu-api#earn-api":
   version "0.4.2"
-  resolved "https://codeload.github.com/saifuwallet/saifu-api/tar.gz/c9246d79b6672027799d72bcf7b294a9eb62eed7"
+  resolved "https://codeload.github.com/saifuwallet/saifu-api/tar.gz/ef1cb845c50e15466f6cc8cae681d963f497ad44"
   dependencies:
     "@solana/spl-token-registry" "^0.2.2911"
     "@solana/web3.js" "^1.35.1"
