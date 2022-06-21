@@ -1,5 +1,6 @@
 import { Tab } from '@headlessui/react';
 import { AmountInput, Button, Card, Spinner, Text } from '@saifuwallet/saifu-ui';
+import { Transaction } from '@solana/web3.js';
 import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
@@ -21,8 +22,8 @@ import useValidatorStakeData from '@/hooks/useValidatorStakeData';
 import { LidoIcon, LidoIconText } from './components/Icon';
 import StakedRow from './components/StakedRow';
 import TokenBalance from './components/TokenBalance';
-import useHandleStake from './hooks/useHandleStake';
-import useHandleUnstake from './hooks/useHandleUnstake';
+import useHandleStake, { generateStakeTransaction } from './hooks/useHandleStake';
+import useHandleUnstake, { generateUnstakeTransaction } from './hooks/useHandleUnstake';
 import useLidoStats, { fetchLidoStats, LidoStats } from './hooks/useLidoStats';
 import { lamportsToSol } from './lib/number';
 import './style.css';
@@ -307,6 +308,19 @@ class LidoPlugin extends Plugin implements EarnProvider {
     }
 
     return await fetchLidoStats();
+  }
+
+  async getOpportunityDepositTransaction(appContext: AppContext, amount: number) {
+    return (
+      (await generateStakeTransaction(appContext.publicKey, amount, appContext.connection)) ?? null
+    );
+  }
+
+  async getOpportunityWithdrawTransaction(appContext: AppContext, amount: number) {
+    return (
+      (await generateUnstakeTransaction(appContext.publicKey, amount, appContext.connection)) ??
+      null
+    );
   }
 
   async getOpportunityBalance(appContext: AppContext) {
