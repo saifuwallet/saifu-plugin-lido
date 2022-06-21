@@ -1,13 +1,5 @@
 import solido from '@chorusone/solido.js';
-import {
-  Keypair,
-  StakeProgram,
-  Transaction,
-  Connection,
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-} from '@solana/web3.js';
+import { Keypair, StakeProgram, Connection, PublicKey } from '@solana/web3.js';
 import { useConnection, useMutation, usePublicKey, useSignAllTransactions } from 'saifu';
 
 import { findAssociatedTokenAddress } from '@/lib/ata';
