@@ -1,6 +1,5 @@
 import { Tab } from '@headlessui/react';
 import { AmountInput, Button, Card, Spinner, Text } from '@saifuwallet/saifu-ui';
-import { Transaction } from '@solana/web3.js';
 import BN from 'bn.js';
 import clsx from 'clsx';
 // eslint-disable-next-line import/no-unresolved
