@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import {
   AppContext,
   EarnProvider,
+  Opportunity,
   Plugin,
   useParams,
   usePublicKey,
@@ -309,17 +310,26 @@ class LidoPlugin extends Plugin implements EarnProvider {
     return await fetchLidoStats();
   }
 
-  async getOpportunityDepositTransaction(appContext: AppContext, amount: number) {
-    return (
-      (await generateStakeTransaction(appContext.publicKey, amount, appContext.connection)) ?? null
-    );
+  async getOpportunityDepositTransactions(
+    appContext: AppContext,
+    _op: Opportunity,
+    amount: number
+  ) {
+    const tx = await generateStakeTransaction(appContext.publicKey, amount, appContext.connection);
+    return tx ? [tx] : [];
   }
 
-  async getOpportunityWithdrawTransaction(appContext: AppContext, amount: number) {
-    return (
-      (await generateUnstakeTransaction(appContext.publicKey, amount, appContext.connection)) ??
-      null
+  async getOpportunityWithdrawTransactions(
+    appContext: AppContext,
+    _op: Opportunity,
+    amount: number
+  ) {
+    const tx = await generateUnstakeTransaction(
+      appContext.publicKey,
+      amount,
+      appContext.connection
     );
+    return tx ? [tx] : [];
   }
 
   async getOpportunityBalance(appContext: AppContext) {
