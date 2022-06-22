@@ -8,6 +8,9 @@
   "resolutions": {
     "axios": "^0.21.1"
   },
+  "publishConfig": {
+    "registry":"https://npm.pkg.github.com"
+  },
   "devDependencies": {
     "@chorusone/solido.js": "file:vendor/solido",
     "@headlessui/react": "^1.5.0",
