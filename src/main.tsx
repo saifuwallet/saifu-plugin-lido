@@ -343,7 +343,6 @@ class LidoPlugin extends Plugin implements EarnProvider {
   }
 
   async getOpportunities() {
-    console.log('lido loading');
     const stats = await this.getOrFetchlidoStats();
 
     return [
@@ -352,6 +351,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
         title: `LIDO SOL Staking`,
         mint: 'sol',
         rate: (stats.apr ?? 0) * 100,
+        detailUrl: 'https://medium.com/chorus-one/introducing-lido-for-solana-8aa02db8503',
       },
     ];
   }
@@ -361,7 +361,6 @@ class LidoPlugin extends Plugin implements EarnProvider {
       return [];
     }
 
-    console.log('lido loading');
     const stats = await this.getOrFetchlidoStats();
 
     return [
@@ -370,6 +369,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
         title: `LIDO SOL Staking`,
         mint: 'sol',
         rate: (stats.apr ?? 0) * 100,
+        detailUrl: 'https://medium.com/chorus-one/introducing-lido-for-solana-8aa02db8503',
       },
     ];
   }
