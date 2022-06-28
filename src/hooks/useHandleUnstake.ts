@@ -7,7 +7,7 @@ import { solToLamports } from '@/lib/number';
 
 export const generateUnstakeTransaction = async (
   pk: PublicKey | undefined,
-  amount: number,
+  amount: string,
   connection: Connection
 ) => {
   if (!pk) {
@@ -57,7 +57,7 @@ const useHandleUnstake = () => {
 
   return useMutation(async ({ enteredAmount }: { enteredAmount: number }) => {
     const amount = solToLamports(enteredAmount);
-    const tx = await generateUnstakeTransaction(pk, amount, connection);
+    const tx = await generateUnstakeTransaction(pk, amount.toString(), connection);
 
     if (!tx) {
       return;
