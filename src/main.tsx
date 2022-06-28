@@ -313,7 +313,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
   async getOpportunityDepositTransactions(
     appContext: AppContext,
     _op: Opportunity,
-    amount: number
+    amount: string
   ) {
     const tx = await generateStakeTransaction(appContext.publicKey, amount, appContext.connection);
     return tx ? [tx] : [];
@@ -322,7 +322,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
   async getOpportunityWithdrawTransactions(
     appContext: AppContext,
     _op: Opportunity,
-    amount: number
+    amount: string
   ) {
     const tx = await generateUnstakeTransaction(
       appContext.publicKey,
@@ -336,10 +336,10 @@ class LidoPlugin extends Plugin implements EarnProvider {
     const foundAcc = appContext.tokenAccounts.find((acc) => acc.mint === stSolMint);
 
     if (!foundAcc) {
-      return 0;
+      return '0';
     }
 
-    return parseInt(foundAcc.amount) ?? 0;
+    return foundAcc.amount;
   }
 
   async getOpportunities() {
