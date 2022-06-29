@@ -1,6 +1,6 @@
 {
   "name": "@saifuwallet/saifu-plugin-lido",
-  "version": "1.2.0-dev5",
+  "version": "1.2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:saifuwallet/saifu-plugin-lido.git",
@@ -9,7 +9,7 @@
     "axios": "^0.21.1"
   },
   "publishConfig": {
-    "registry":"https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
     "@chorusone/solido.js": "file:vendor/solido",
