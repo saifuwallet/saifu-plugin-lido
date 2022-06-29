@@ -348,7 +348,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
     return [
       {
         id: 'stake',
-        title: `LIDO SOL Staking`,
+        title: `LIDO stSOL`,
         mint: 'sol',
         rate: (stats.apr ?? 0) * 100,
         detailUrl: 'https://medium.com/chorus-one/introducing-lido-for-solana-8aa02db8503',
@@ -366,7 +366,7 @@ class LidoPlugin extends Plugin implements EarnProvider {
     return [
       {
         id: 'stake',
-        title: `LIDO SOL Staking`,
+        title: `LIDO stSOL`,
         mint: 'sol',
         rate: (stats.apr ?? 0) * 100,
         detailUrl: 'https://medium.com/chorus-one/introducing-lido-for-solana-8aa02db8503',
